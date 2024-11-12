@@ -1,6 +1,10 @@
+use std::net::TcpListener;
 use zero2prod::run;
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    run("127.0.0.1:8000")?.await
+    //Bubbleup the io::Errorifwe failed tobindtheaddress
+    //Otherwise call.await on our Server
+
+    run(TcpListener::bind("127.0.0.1:8000").expect("BIND FAILED"))?.await
 }
