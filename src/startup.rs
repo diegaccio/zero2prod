@@ -1,3 +1,5 @@
+use crate::routes::health_check::health_check;
+use crate::routes::subscriptions::subscribe;
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
 use std::net::TcpListener;
@@ -7,10 +9,7 @@ pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
         App::new()
             //.route("/", web::get().to(greet))
             //.route("/{name}", web::get().to(greet))
-            .route(
-                "/health_check",
-                web::get().to(routes::health_check::health_check),
-            )
+            .route("/health_check", web::get().to(health_check))
             // A new entry in our routing table for POST /subscriptions requests
             .route("/subscriptions", web::post().to(subscribe))
     })
