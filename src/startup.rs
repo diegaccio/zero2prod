@@ -1,5 +1,6 @@
 use crate::routes::{health_check, subscribe};
 use actix_web::dev::Server;
+use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use sqlx::PgPool;
 use std::net::TcpListener;
@@ -12,10 +13,9 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
     //to force the closure to take ownership of `connection` (and any other referenced variables), use the `move` keyword
     let server = HttpServer::new(move || {
         App::new()
-            //.route("/", web::get().to(greet))
-            //.route("/{name}", web::get().to(greet))
+            // Middlewares are added using the `wrap` method on `App`
+            .wrap(Logger::default())
             .route("/health_check", web::get().to(health_check))
-            // A new entry in our routing table for POST /subscriptions requests
             .route("/subscriptions", web::post().to(subscribe))
             .app_data(db_pool.clone())
     })
