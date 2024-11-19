@@ -1,6 +1,7 @@
 use actix_web::{web, HttpResponse};
 use chrono::Utc;
 use sqlx::PgPool;
+use tracing::Instrument;
 use uuid::Uuid;
 
 #[derive(serde::Deserialize)]
@@ -21,16 +22,29 @@ pub async fn subscribe(
 ) -> HttpResponse {
     // Let's generate a random unique identifier
     let request_id = Uuid::new_v4();
-    tracing::info!(
-        "request_id {} - Adding '{}' '{}' as a new subscriber.",
-        request_id,
-        form.email,
-        form.name
+
+    // Spans, like logs, have an associated level // `info_span` creates a span at the info-level
+    let request_span = tracing::info_span!(
+        "Adding a new subscriber.",
+        %request_id,
+        subscriber_email = %form.email,
+        subscriber_name= %form.name
     );
-    tracing::info!(
-        "request_id {} - Saving new subscriber details in the database",
-        request_id
-    );
+    //Notice that we prefixed all of them with a % symbol: we are telling tracing to use their Display implementation for logging purposes
+
+    // Using `enter` in an async function is a recipe for disaster!
+    // Bear with me for now, but don't do this at home.
+    // See the following section on `Instrumenting Futures`
+    let _request_span_guard = request_span.enter();
+
+    // `_request_span_guard` is dropped at the end of `subscribe`
+    // That's when we "exit" the span
+
+    // We do not call `.enter` on query_span!
+    // `.instrument` takes care of it at the right moments
+    // in the query future lifetime
+    //this trace will show up every time the future is polled
+    let query_span = tracing::info_span!("Saving new subscriber details in the database");
 
     let res = sqlx::query!(
         r#"
@@ -44,6 +58,8 @@ pub async fn subscribe(
     // We use `get_ref` to get an immutable reference to the `PgConnection`
     // wrapped by `web::Data`.
     .execute(pool.get_ref())
+    // First we attach the instrumentation, then we `.await` it
+    .instrument(query_span)
     .await;
 
     match res {
