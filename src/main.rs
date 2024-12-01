@@ -1,3 +1,4 @@
+use secrecy::ExposeSecret;
 use sqlx::PgPool;
 use std::net::TcpListener;
 use zero2prod::configuration::get_configuration;
@@ -14,9 +15,10 @@ async fn main() -> Result<(), std::io::Error> {
     let configuration = get_configuration().expect("Failed to read configuration.");
 
     //PgPool is a pool of connections to a Postgres database.
-    let connection_pool = PgPool::connect(&configuration.database.connection_string())
-        .await
-        .expect("Failed to connect to Postgres.");
+    let connection_pool =
+        PgPool::connect(configuration.database.connection_string().expose_secret())
+            .await
+            .expect("Failed to connect to Postgres.");
 
     //Bubbleup the io::Errorifwe failed tobindtheaddress
     //Otherwise call.await on our Server
