@@ -112,7 +112,7 @@ async fn health_check_works() {
     // Act
     let response = client
         // Use the returned application address
-        .get(&format!("{}/health_check", &test_app.address))
+        .get(format!("{}/health_check", test_app.address))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -130,7 +130,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
     let client = reqwest::Client::new();
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
     let response = client
-        .post(&format!("{}/subscriptions", &test_app.address))
+        .post(format!("{}/subscriptions", test_app.address))
         .header("Content-Type", "application/x-www-form-urlencoded")
         .body(body)
         .send()
@@ -165,7 +165,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
     for (invalid_body, error_message) in test_cases {
         // Act
         let response = client
-            .post(&format!("{}/subscriptions", &test_app.address))
+            .post(format!("{}/subscriptions", test_app.address))
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(invalid_body)
             .send()
