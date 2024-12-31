@@ -7,3 +7,5 @@ curl http://127.0.0.1:8000/health_check
 # all our SQL queries.
 cargo sqlx prepare -- --lib
 cargo sqlx prepare --workspace
+
+cargo deny check advisories 
