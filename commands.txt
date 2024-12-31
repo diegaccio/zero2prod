@@ -1,0 +1,9 @@
+
+curl http://127.0.0.1:8000/health_check
+
+# It must be invoked as a cargo subcommand
+# All options after `--` are passed to cargo itself
+# We need to point it at our library since it contains
+# all our SQL queries.
+cargo sqlx prepare -- --lib
+cargo sqlx prepare --workspace
